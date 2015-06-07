@@ -132,6 +132,10 @@ Feature: JSON output formatter
               "description": "",
               "tags": [
                 {
+                  "name": "@a",
+                  "line": 1
+                },
+                {
                   "name": "@b",
                   "line": 4
                 }
@@ -159,6 +163,10 @@ Feature: JSON output formatter
               "line": 9,
               "description": "",
               "tags": [
+                {
+                  "name": "@a",
+                  "line": 1
+                },
                 {
                   "name": "@c",
                   "line": 8
@@ -215,6 +223,10 @@ Feature: JSON output formatter
               "description": "",
               "tags": [
                 {
+                  "name": "@a",
+                  "line": 1
+                },
+                {
                   "name": "@b",
                   "line": 4
                 }
@@ -242,6 +254,10 @@ Feature: JSON output formatter
               "line": 9,
               "description": "",
               "tags": [
+                {
+                  "name": "@a",
+                  "line": 1
+                },
                 {
                   "name": "@c",
                   "line": 8

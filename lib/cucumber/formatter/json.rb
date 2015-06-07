@@ -147,6 +147,7 @@ module Cucumber
           name: step_source.name,
           line: step_source.location.line
         }
+        step_hash[:comments] = Formatter.create_comments_array(step_source.comments) unless step_source.comments.empty?
         step_hash[:doc_string] = create_doc_string_hash(step_source.multiline_arg) if step_source.multiline_arg.doc_string?
         step_hash
       end
@@ -215,7 +216,15 @@ module Cucumber
             description: feature.description,
             line: feature.location.line
           }
-          @feature_hash[:tags] = create_tags_array(feature.tags) unless feature.tags.empty?
+          unless feature.tags.empty?
+            @feature_hash[:tags] = create_tags_array(feature.tags)
+            if @test_case_hash[:tags]
+              @test_case_hash[:tags] = @feature_hash[:tags] + @test_case_hash[:tags]
+            else
+              @test_case_hash[:tags] = @feature_hash[:tags]
+            end
+          end
+          @feature_hash[:comments] = Formatter.create_comments_array(feature.comments) unless feature.comments.empty?
           @test_case_hash[:id].insert(0, @feature_hash[:id] + ';')
         end
 
@@ -227,6 +236,7 @@ module Cucumber
             line: background.location.line,
             type: 'background'
           }
+          @background_hash[:comments] = Formatter.create_comments_array(background.comments) unless background.comments.empty?
         end
 
         def scenario(scenario)
@@ -239,6 +249,7 @@ module Cucumber
             type: 'scenario'
           }
           @test_case_hash[:tags] = create_tags_array(scenario.tags) unless scenario.tags.empty?
+          @test_case_hash[:comments] = Formatter.create_comments_array(scenario.comments) unless scenario.comments.empty?
         end
 
         def scenario_outline(scenario)
@@ -250,17 +261,29 @@ module Cucumber
             line: @row.location.line,
             type: 'scenario'
           }
-          @test_case_hash[:tags] = create_tags_array(scenario.tags) unless scenario.tags.empty?
+          tags = []
+          tags += create_tags_array(scenario.tags) unless scenario.tags.empty?
+          tags += @examples_table_tags if @examples_table_tags
+          @test_case_hash[:tags] = tags unless tags.empty?
+          comments = []
+          comments += Formatter.create_comments_array(scenario.comments) unless scenario.comments.empty?
+          comments += @examples_table_comments if @examples_table_comments
+          comments += @row_comments if @row_comments
+          @test_case_hash[:comments] =  comments unless comments.empty?
         end
 
         def examples_table(examples_table)
           # the json file have traditionally used the header row as row 1,
           # wheras cucumber-ruby-core used the first example row as row 1.
           @example_id = create_id(examples_table) + ";#{@row.number + 1}"
+
+          @examples_table_tags = create_tags_array(examples_table.tags) unless examples_table.tags.empty?
+          @examples_table_comments = Formatter.create_comments_array(examples_table.comments) unless examples_table.comments.empty?
         end
 
         def examples_table_row(row)
           @row = row
+          @row_comments = Formatter.create_comments_array(row.comments) unless row.comments.empty?
         end
 
         private
@@ -275,6 +298,12 @@ module Cucumber
           tags_array
         end
       end
+    end
+
+    def self.create_comments_array(comments)
+      comments_array = []
+      comments.each { |comment| comments_array << { value: comment.to_s.strip, line: comment.location.line } }
+      comments_array
     end
   end
 end
